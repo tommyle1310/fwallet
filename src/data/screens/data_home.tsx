@@ -81,7 +81,7 @@ export const data_mainFeatures_Homescreen: {
   onPress: (navigation: any) => void; // navigation will be passed as argument
 }[] = [
   {
-    title: "Top Up",
+    title: "Top Up/Withdraw",
     icon: <IconIonicons name="wallet-outline" color="#4FCA24" size={24} />,
     onPress: (navigation) => {
       navigation.navigate('TopUp')

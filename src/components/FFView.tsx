@@ -1,21 +1,25 @@
-import { View, Text } from "react-native";
+import { View, ViewStyle } from "react-native";
 import React from "react";
 import { useTheme } from "../hooks/useTheme";
 
-const FFView = ({children, className, style}: {children?: React.ReactNode, className?: string, style?: object}) => {
+interface FFViewProps {
+  children?: React.ReactNode;
+  style?: ViewStyle;  // Only `style` prop to control the styles
+}
+
+const FFView = ({ children, style }: FFViewProps) => {
   const { theme } = useTheme();
-  
-  return (
-    <View
-      style={{...style,
-        backgroundColor: theme === "light" ? '#eee' : "#1e1e1e", // Correctly setting the backgroundColor
-        flex: 1, 
-      }}
-      className={className}
-    >
-      {children}
-    </View>
-  );
+
+  // Merge passed styles with the default styles
+  const containerStyle = {
+    backgroundColor: theme === "light" ? '#eee' : "#1e1e1e", // Background color based on the theme
+    borderColor: theme === "light" ? 'transparent' : '#ccc',  // Border color based on the theme
+    borderWidth: 1,  // Apply border width
+    flex: 1,  // Ensure the container takes up full available space
+    ...style,  // Custom styles passed via `style` prop will override defaults
+  };
+
+  return <View style={containerStyle}>{children}</View>;
 };
 
 export default FFView;

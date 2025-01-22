@@ -46,7 +46,7 @@ const Signup = () => {
 
     // Make the POST request
     axiosInstance
-      .post("/auth/register-customer", requestBody, {
+      .post("/auth/register-fwallet", requestBody, {
         validateStatus: () => true, // Always return true so axios doesn't throw on errors
       })
       .then((response) => {

@@ -5,6 +5,9 @@ import FFSafeAreaView from "@/src/components/FFSafeAreaView";
 import FFText from "@/src/components/FFText";
 import IconFeather from "react-native-vector-icons/Feather";
 import { useTheme } from "@/src/hooks/useTheme";
+import Deposit from "@/src/components/TopUp/Deposit";
+import Withdraw from "@/src/components/TopUp/Withdraw";
+import FFView from "@/src/components/FFView";
 
 const TopUpScreen = () => {
   const [isDeposit, setIsDeposit] = useState<boolean>(true);
@@ -23,20 +26,65 @@ const TopUpScreen = () => {
             size={20}
           />
         </TouchableOpacity>
-        <FFText style={{fontSize: 20}}>Top Up</FFText>
+        <FFText style={{ fontSize: 20 }}>Top Up/Withdraw</FFText>
       </View>
       <View className=" flex-1 p-4">
         <View className="flex-row items-center w-full">
-          <TouchableOpacity onPress={() => setIsDeposit(true)} className={`${isDeposit ? 'bg-white border-b border-gray-200' : null} w-1/2 items-center rounded-t-xl p-4`}>
-            <FFText style={{color: isDeposit ? '#63c550' : theme === 'light' ? '#111': '#ddd'}}>Deposit</FFText>
+          <TouchableOpacity
+            onPress={() => setIsDeposit(true)}
+            className={`${
+              isDeposit
+                ? theme === "light"
+                  ? "bg-white border-b border-gray-200"
+                  : " border bg-black border-gray-200"
+                : null
+            } w-1/2 items-center rounded-t-xl p-4`}
+          >
+            <FFText
+              style={{
+                color: isDeposit
+                  ? "#63c550"
+                  : theme === "light"
+                  ? "#111"
+                  : "#ddd",
+              }}
+            >
+              Deposit
+            </FFText>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsDeposit(false)} className={`${!isDeposit ? 'bg-white border-b border-gray-200' : null} w-1/2 items-center rounded-t-xl p-4`}>
-            <FFText style={{color: !isDeposit ? '#63c550' : theme === 'light' ? '#111': '#ddd'}}>Withdraw</FFText>
+          <TouchableOpacity
+            onPress={() => setIsDeposit(false)}
+            className={`${
+              !isDeposit
+                ? theme === "light"
+                  ? "bg-white border-b border-gray-200"
+                  : " border bg-black border-gray-200"
+                : null
+            } w-1/2 items-center rounded-t-xl p-4`}
+          >
+            <FFText
+              style={{
+                color: !isDeposit
+                  ? "#63c550"
+                  : theme === "light"
+                  ? "#111"
+                  : "#ddd",
+              }}
+            >
+              Withdraw
+            </FFText>
           </TouchableOpacity>
         </View>
-        <View className={`bg-white p-4 flex-1 rounded-b-3xl ${isDeposit ? 'rounded-tr-3xl' : 'rounded-tl-3xl'}`}>
-          {isDeposit ? <FFText>Deposit</FFText> : <FFText>Withdraw</FFText>}
-        </View>
+        <FFView
+          style={{
+            padding: 10, // Custom padding
+            borderBottomLeftRadius: isDeposit ? 24 : 16, // Dynamically change border radius
+            borderBottomRightRadius: isDeposit ? 24 : 16, // Dynamically change border radius
+            backgroundColor: theme === "light" ? "white" : "black",
+          }}
+        >
+          {isDeposit ? <Deposit /> : <Withdraw />}
+        </FFView>
       </View>
     </FFSafeAreaView>
   );

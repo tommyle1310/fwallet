@@ -91,8 +91,8 @@ const AppNavigator = () => {
   }
 
   return (
-    <Stack.Navigator initialRouteName={token ? "Home" : "Home"}>
-      {/* <Stack.Screen
+    <Stack.Navigator initialRouteName={token ? "Home" : "Login"}>
+      <Stack.Screen
         name="Login"
         options={{ headerShown: false }} // Disable header for Login screen
         component={LoginScreen}
@@ -101,7 +101,7 @@ const AppNavigator = () => {
         name="Signup"
         options={{ headerShown: false }} // Disable header for Signup screen
         component={SignupScreen}
-      /> */}
+      />
       <Stack.Screen
         name="Home"
         options={{ headerShown: false }} // Disable header for Home screen
