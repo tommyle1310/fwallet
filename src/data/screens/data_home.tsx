@@ -103,9 +103,7 @@ export const data_mainFeatures_Homescreen: {
         size={24}
       />
     ),
-    onPress: (navigation) => {
-      // Add the action for Request button
-    },
+    onPress: (navigation) => {},
   },
   {
     title: "History",
@@ -113,7 +111,7 @@ export const data_mainFeatures_Homescreen: {
       <IconMaterialCommunityIcons name="history" color="#4FCA24" size={24} />
     ),
     onPress: (navigation) => {
-      // Add the action for History button
+      navigation.navigate("HistoryTransaction");
     },
   },
 ];

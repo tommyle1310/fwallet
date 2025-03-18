@@ -17,11 +17,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "../store/types";
 import { loadTokenFromAsyncStorage } from "../store/authSlice";
 import TransferMoneyScreen from "@/screens/TransferMoneyScreen";
+import HistoryTransactionScreen from "@/screens/HistoryTransactionScreen";
 
 // Define the param list for the stack navigator
 export type RootStackParamList = {
   Login: undefined;
   TopUp: undefined;
+  HistoryTransaction: undefined;
   TransferMoney: undefined;
   Signup: undefined;
   Home: undefined;
@@ -121,6 +123,11 @@ const AppNavigator = () => {
         name="TransferMoney"
         options={{ headerShown: false }}
         component={TransferMoneyScreen}
+      />
+      <Stack.Screen
+        name="HistoryTransaction"
+        options={{ headerShown: false }}
+        component={HistoryTransactionScreen}
       />
     </Stack.Navigator>
   );
