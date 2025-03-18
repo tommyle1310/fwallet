@@ -8,7 +8,9 @@ import {
   RootStackParamList,
   RootTabParamList,
 } from "@/src/navigation/AppNavigator";
-import ContactList, { Contact } from "@/src/components/ContactList";
+import ContactList, {
+  Contact,
+} from "@/src/components/TransferMoney/ContactList";
 import { TypeAmount } from "@/src/components/TransferMoney/TypeAmount";
 
 type TransferMoneyScreenNavigationProp = StackNavigationProp<

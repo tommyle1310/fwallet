@@ -10,11 +10,19 @@ import { useTheme } from "@/src/hooks/useTheme";
 import { useSelector } from "@/src/store/types";
 import { RootState } from "@/src/store/store";
 
-const Deposit = () => {
+interface DepositProps {
+  value: string;
+  setValue: (value: string) => void;
+  setIsShowModalConfirm: (isShow: boolean) => void;
+}
+
+const Deposit: React.FC<DepositProps> = ({
+  value,
+  setValue,
+  setIsShowModalConfirm,
+}) => {
   const { theme } = useTheme();
-  const [value, setValue] = useState("");
   const [invalidValueMessage, setInvalidValueMessage] = useState("");
-  const [isShowModalConfirm, setIsShowModalConfirm] = useState<boolean>(false);
   const { email, balance } = useSelector((state: RootState) => state.auth); // Get token from Redux
 
   const handleChangeText = (text: string) => {
@@ -78,13 +86,6 @@ const Deposit = () => {
           Continue
         </FFButton>
       </FFView>
-
-      {/* modal confirm when click continue */}
-      <ModalConfirmPayment
-        onClose={() => setIsShowModalConfirm(false)}
-        isVisible={isShowModalConfirm}
-        value={value}
-      />
     </>
   );
 };

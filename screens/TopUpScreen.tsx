@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Keyboard } from "react-native";
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native"; // Import the useNavigation hook
 import FFSafeAreaView from "@/src/components/FFSafeAreaView";
@@ -8,11 +8,27 @@ import { useTheme } from "@/src/hooks/useTheme";
 import Deposit from "@/src/components/TopUp/Deposit";
 import Withdraw from "@/src/components/TopUp/Withdraw";
 import FFView from "@/src/components/FFView";
+import ModalConfirmPayment from "@/src/components/TopUp/ModalConfirmPayment";
 
 const TopUpScreen = () => {
+  const [isShowModalConfirm, setIsShowModalConfirm] = useState<boolean>(false);
   const [isDeposit, setIsDeposit] = useState<boolean>(true);
+  const [value, setValue] = useState("");
+  const [invalidValueMessage, setInvalidValueMessage] = useState("");
   const navigation = useNavigation(); // Access navigation object
   const { theme } = useTheme();
+
+  const handleContinue = () => {
+    if (!value) {
+      setInvalidValueMessage("Please enter a value to proceed payment");
+      return;
+    }
+
+    setInvalidValueMessage("");
+    setIsShowModalConfirm(true);
+    Keyboard.dismiss();
+  };
+
   return (
     <FFSafeAreaView>
       <View className="flex-row items-center justify-center w-full mt-4 relative">
@@ -81,11 +97,26 @@ const TopUpScreen = () => {
             borderBottomLeftRadius: isDeposit ? 24 : 16, // Dynamically change border radius
             borderBottomRightRadius: isDeposit ? 24 : 16, // Dynamically change border radius
             backgroundColor: theme === "light" ? "white" : "black",
+            flex: 1,
           }}
         >
-          {isDeposit ? <Deposit /> : <Withdraw />}
+          {isDeposit ? (
+            <Deposit
+              value={value}
+              setValue={setValue}
+              setIsShowModalConfirm={setIsShowModalConfirm}
+            />
+          ) : (
+            <Withdraw />
+          )}
         </FFView>
       </View>
+      {/* modal confirm when click continue */}
+      <ModalConfirmPayment
+        onClose={() => setIsShowModalConfirm(false)}
+        isVisible={isShowModalConfirm}
+        value={value}
+      />
     </FFSafeAreaView>
   );
 };

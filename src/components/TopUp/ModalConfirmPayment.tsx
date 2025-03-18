@@ -16,15 +16,31 @@ import {
   setBalance,
 } from "@/src/store/authSlice";
 import FFModal from "../FFModal";
+import Spinner from "../FFSpinner";
+
+export type Type_RequestBodyCreateTransaction = {
+  user_id: string;
+  fwallet_id: string;
+  transaction_type: "DEPOSIT" | "WITHDRAW" | "PURCHASE" | "REFUND";
+  amount: number;
+  balance_after: number;
+  status: "PENDING" | "CANCELLED" | "FAILED" | "COMPLETED";
+  source: "MOMO" | "FWALLET";
+  destination_type: "FWALLET" | "TEMPORARY_WALLET_BALANCE";
+  destination: string;
+  receiver_name?: string;
+};
 
 interface Props_ModalConfirmPayment {
   value: string;
   isVisible: boolean;
   onClose: () => void;
+  requestBody?: Type_RequestBodyCreateTransaction;
 }
 
 const ModalConfirmPayment = ({
   value,
+  requestBody,
   isVisible,
   onClose,
 }: Props_ModalConfirmPayment) => {
@@ -36,7 +52,7 @@ const ModalConfirmPayment = ({
     null
   );
   const [isOpenModalStatus, setIsOpenModalStatus] = useState<boolean>(false);
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const {
     email,
     userId,
@@ -45,93 +61,138 @@ const ModalConfirmPayment = ({
     accessToken,
     app_preferences,
     user_type,
-  } = useSelector((state: RootState) => state.auth); // Get token from Redux
+  } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
-  console.log("check stat", userId);
 
-  const [loading, setLoading] = useState(true); // Loading state to wait for token loading
+  const [loading, setLoading] = useState(true);
 
-  // Load token from AsyncStorage when the app starts
   useEffect(() => {
     const loadToken = async () => {
       await dispatch(loadTokenFromAsyncStorage());
-      setLoading(false); // Set loading to false after token is loaded
+      setLoading(false);
     };
     loadToken();
   }, [dispatch]);
 
-  // If the token is still loading, show a blank screen or a loading spinner
   if (loading) {
-    return null; // Or return a loading spinner here, e.g. <ActivityIndicator />
+    return <Spinner isVisible isOverlay />;
   }
 
   const handleConfirmPayment = async () => {
-    // Check if the balance is sufficient (balance - value)
-    // if ((balance ?? 0) - +value < 0) {
-    //   // Set the error state message if not enough balance
-    //   setError("Not enough balance");
-    //   setModalStatus('ERROR');
-    //   setIsOpenModalStatus(true);
-    //   return;
-    // }
+    setIsLoading(true);
 
-    // Create the request body
-    const requestBody = {
-      user_id: userId ?? "", // Use empty string if userId is null
-      fwallet_id: fWalletId ?? "", // Use empty string if fWalletId is null
-      transaction_type: "DEPOSIT",
-      amount: +value,
-      balance_after: (balance ?? 0) + +value,
-      status: "PENDING",
-      source: "FWALLET",
-      destination_type: "FWALLET",
-      destination: fWalletId ?? "", // Use empty string if fWalletId is null
-    };
-    console.log("cehck req bodt", requestBody);
+    // Nếu không có requestBody từ props, tạo defaultDepositRequestBody
+    if (!requestBody) {
+      // Kiểm tra userId và fWalletId trước khi tạo request body
+      if (!userId || !fWalletId) {
+        setError("User ID or Wallet ID is missing");
+        setModalStatus("ERROR");
+        setIsOpenModalStatus(true);
+        setIsLoading(false);
+        return;
+      }
 
+      const defaultDepositRequestBody: Type_RequestBodyCreateTransaction = {
+        user_id: userId,
+        fwallet_id: fWalletId,
+        transaction_type: "DEPOSIT",
+        amount: Number(value), // Chuyển value thành number
+        balance_after: (balance ?? 0) + Number(value),
+        status: "PENDING",
+        source: selectedPaymentMethod === "MOMO" ? "MOMO" : "FWALLET", // Dựa vào phương thức chọn
+        destination_type: "FWALLET",
+        destination: fWalletId,
+      };
+
+      try {
+        const response = await axiosInstance.post(
+          "/transactions",
+          defaultDepositRequestBody,
+          {
+            validateStatus: () => true,
+          }
+        );
+        console.log("Response for default deposit:", response.data);
+
+        if (response.data?.EC === 0) {
+          const newBalance = (balance ?? 0) + Number(value);
+          dispatch(setBalance(newBalance));
+          dispatch(
+            saveTokenToAsyncStorage({
+              accessToken: accessToken ?? "",
+              app_preferences: app_preferences ?? {},
+              balance: newBalance,
+              email: email ?? "",
+              fWalletId: fWalletId,
+              userId: userId,
+              user_type: user_type ?? [],
+            })
+          );
+          setModalStatus("SUCCESSFUL");
+          setIsOpenModalStatus(true);
+        } else {
+          setError(response.data?.EM || "Transaction failed");
+          setModalStatus("ERROR");
+          setIsOpenModalStatus(true);
+        }
+      } catch (error: any) {
+        setError(error.message || "Network error or request failed");
+        setModalStatus("ERROR");
+        setIsOpenModalStatus(true);
+      } finally {
+        setIsLoading(false);
+      }
+      return; // Thoát sau khi xử lý defaultDepositRequestBody
+    }
+
+    // Xử lý khi có requestBody từ props
+    console.log("Request body from props:", requestBody);
     try {
-      // Send the POST request
       const response = await axiosInstance.post(
         "/transactions",
-        requestBody, // Send the actual request body
+        { ...requestBody, receiver_name: undefined },
         {
-          validateStatus: () => true, // Do not reject on non-2xx status codes
+          validateStatus: () => true,
         }
       );
-      console.log("cehck ", response.data);
+      console.log("Response for provided requestBody:", response.data);
 
-      // Handle the response data (e.g., navigate or update UI based on response)
       if (response.data?.EC === 0) {
-        // Transaction is successful: Update the global balance
-        const newBalance = (balance ?? 0) + +value;
-        dispatch(setBalance(newBalance)); // Update Redux store with the new balance
+        const newBalance =
+          requestBody.transaction_type === "DEPOSIT"
+            ? (balance ?? 0) + Number(value)
+            : (balance ?? 0) - Number(value);
+        dispatch(setBalance(newBalance));
         dispatch(
           saveTokenToAsyncStorage({
-            // Save the updated balance to AsyncStorage
-            accessToken: accessToken ?? "", // Use empty string if accessToken is null
-            app_preferences: app_preferences ?? {}, // Use empty object if app_preferences is null
+            accessToken: accessToken ?? "",
+            app_preferences: app_preferences ?? {},
             balance: newBalance,
-            email: email ?? "", // Use empty string if email is null
-            fWalletId: fWalletId ?? "", // Use empty string if fWalletId is null
-            userId: userId ?? "", // Use empty string if userId is null
-            user_type: user_type ?? [], // Use empty array if user_type is null
+            email: email ?? "",
+            fWalletId: fWalletId ?? "",
+            userId: userId ?? "",
+            user_type: user_type ?? [],
           })
         );
         setModalStatus("SUCCESSFUL");
         setIsOpenModalStatus(true);
       } else {
-        // Failure: Set the error message from response if available
         setError(response.data?.EM || "Transaction failed");
         setModalStatus("ERROR");
         setIsOpenModalStatus(true);
       }
-    } catch (error) {
-      // Handle network or other errors
-      setError("Network error or request failed");
+    } catch (error: any) {
+      setError(error.message || "Network error or request failed");
       setModalStatus("ERROR");
       setIsOpenModalStatus(true);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <Spinner isVisible isOverlay />;
+  }
 
   return (
     <>
@@ -145,7 +206,7 @@ const ModalConfirmPayment = ({
             contentContainerStyle={{
               flexDirection: "row",
               gap: 4,
-              alignItems: "center", // Ensure items are vertically centered
+              alignItems: "center",
             }}
             style={{ paddingHorizontal: 10 }}
           >
@@ -155,17 +216,17 @@ const ModalConfirmPayment = ({
                 key={index}
                 style={[
                   {
-                    padding: 8, // Padding equivalent of p-2 and paddingVertical
-                    borderRadius: 16, // Equivalent of rounded-2xl
+                    padding: 8,
+                    borderRadius: 16,
                     flexDirection: "row",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    borderWidth: 1, // Equivalent to border
-                    height: "auto", // Ensures height fits content
+                    borderWidth: 1,
+                    height: "auto",
                   },
                   {
                     borderColor:
-                      selectedPaymentMethod === item.name ? "#5BCD33" : "#ccc", // Dynamically set border color
+                      selectedPaymentMethod === item.name ? "#5BCD33" : "#ccc",
                   },
                 ]}
               >
@@ -190,10 +251,19 @@ const ModalConfirmPayment = ({
           </ScrollView>
         </View>
 
-        <View className="border  border-gray-300 rounded-lg p-4 gap-4 mt-6">
+        <View className="border border-gray-300 rounded-lg p-4 gap-4 mt-6">
           <View className="justify-between flex-row items-center">
             <FFText style={{ color: "#bbb", fontWeight: 400 }}>Service</FFText>
-            <FFText>Deposit to FWallet</FFText>
+            <FFText
+              style={{
+                width: "80%",
+                textAlign: "right",
+              }}
+            >
+              {requestBody
+                ? `Transfer money to ${requestBody?.receiver_name}`
+                : "Deposit to FWallet"}
+            </FFText>
           </View>
           <View className="justify-between flex-row items-center">
             <FFText style={{ color: "#bbb", fontWeight: 400 }}>Source</FFText>
@@ -212,7 +282,7 @@ const ModalConfirmPayment = ({
             <FFText style={{ color: "#bbb", fontWeight: 400 }}>
               Service Fee
             </FFText>
-            <FFText>{`${SERVICE_FEE}%` && "Free"}</FFText>
+            <FFText>{SERVICE_FEE === 0 ? "Free" : `${SERVICE_FEE}%`}</FFText>
           </View>
         </View>
         <View style={{ flex: 1, marginTop: 40 }} className="gap-2 self-end">
@@ -233,7 +303,9 @@ const ModalConfirmPayment = ({
           visible={isOpenModalStatus}
           onClose={() => setIsOpenModalStatus(false)}
         >
-          <FFText>{modalStatus === "ERROR" ? error : "Success"}</FFText>
+          <FFText>
+            {modalStatus === "ERROR" ? error : "Your payment is succeeded! 😁"}
+          </FFText>
         </FFModal>
       </SlideUpModal>
     </>
