@@ -1,10 +1,9 @@
-// screens/Login.tsx
 import React, { useEffect, useState } from "react";
 import FFSafeAreaView from "@/src/components/FFSafeAreaView";
 import { useNavigation } from "@react-navigation/native";
 import FFAuthForm from "./FFAuthForm";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "@/src/navigation/AppNavigator"; // Make sure you have this path correct
+import { RootStackParamList } from "@/src/navigation/AppNavigator";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "@/src/store/types";
 import {
@@ -15,6 +14,7 @@ import {
 import axiosInstance from "@/src/utils/axiosConfig";
 import { RootState } from "@/src/store/store";
 import { decodeJWT } from "@/src/utils/functions";
+import Spinner from "@/src/components/FFSpinner";
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -23,60 +23,89 @@ type LoginScreenNavigationProp = StackNavigationProp<
 
 const Login = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const [error, setError] = useState("");
-const handleLoginSubmit = async (email: string, password: string) => {
-  // Request body
-  const requestBody = {
-    email: email,
-    password: password,
-  };
 
-  try {
-    // Make the POST request
-    const response = await axiosInstance.post(
-      "/auth/login-fwallet",
-      requestBody,
-      {
-        // This will ensure axios does NOT reject on non-2xx status codes
-        validateStatus: () => true, // Always return true so axios doesn't throw on errors
+  const handleLoginSubmit = async (email: string, password: string) => {
+    const requestBody = {
+      email: email,
+      password: password,
+    };
+
+    try {
+      setLoading(true);
+      console.log("Loading state set to:", true);
+      console.log("Requesting to:", axiosInstance.defaults.baseURL); // Debug URL
+
+      const response = await axiosInstance.post(
+        "/auth/login-fwallet",
+        requestBody,
+        {
+          validateStatus: () => true, // Không reject trên non-2xx
+        }
+      );
+
+      console.log("API Response:", response.data);
+
+      const { EC, EM } = response.data;
+
+      if (EC === 0) {
+        const decoded = decodeJWT(response.data.data.access_token);
+        console.log("Decoded JWT:", decoded);
+
+        const {
+          app_preferences,
+          balance,
+          email,
+          user_id,
+          user_type,
+          fWallet_id,
+        } = decoded;
+
+        await dispatch(
+          saveTokenToAsyncStorage({
+            accessToken: response.data.data.access_token,
+            app_preferences: app_preferences,
+            balance: balance,
+            email: email,
+            fWalletId: fWallet_id,
+            userId: user_id,
+            user_type: user_type,
+          })
+        );
+
+        navigation.navigate("Home");
+      } else {
+        console.error("Login Error:", {
+          errorCode: EC,
+          errorMessage: EM,
+          fullResponse: response.data,
+        });
+        setError(EM || "Login failed");
       }
-    );
+    } catch (error: any) {
+      console.error("Login failed - Full error:", {
+        message: error.message,
+        stack: error.stack,
+        response: error.response?.data,
+        status: error.response?.status,
+        baseURL: axiosInstance.defaults.baseURL, // Debug baseURL
+      });
 
-    // Now you can safely access the EC field
-    const { EC, EM } = response.data; // Access EC directly
-
-    if (EC === 0) {
-      // Success: Decode the JWT from the response data
-      const decoded = decodeJWT(response.data.data.access_token);
-
-      // Extract necessary fields from the decoded JWT (adjust field names as needed)
-      const {  app_preferences, balance, email, userId, user_type, fWallet_id } = decoded;
-
-
-      // Save all the relevant data to Redux and AsyncStorage
-      await dispatch(saveTokenToAsyncStorage({
-        accessToken: response.data.data.access_token,
-        app_preferences: app_preferences,
-        balance: balance,
-        email: email,
-        fWalletId: fWallet_id,
-        userId: userId,
-        user_type: user_type,
-      }));
-
-      // Navigate to home or another screen
-      navigation.navigate("Home");
-    } else {
-      // Handle error based on EC (optional)
-      setError(EM);
+      // Xử lý lỗi mạng cụ thể
+      if (error.message === "Network Error") {
+        setError(
+          "Cannot connect to server. Check your network or server status."
+        );
+      } else {
+        setError(error.message || "An unexpected error occurred");
+      }
+    } finally {
+      setLoading(false);
+      console.log("Loading state set to:", false);
     }
-  } catch (error) {
-    console.error("Login failed:", error);
-    // Handle error here
-  }
-};
-
+  };
 
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const isAuthenticated = useSelector(
@@ -84,9 +113,14 @@ const handleLoginSubmit = async (email: string, password: string) => {
   );
 
   if (isAuthenticated) {
-    // console.log("User is authenticated with token:", accessToken);
+    console.log("User is authenticated with token:", accessToken);
   } else {
-    // console.log("User is not authenticated");
+    console.log("User is not authenticated");
+  }
+
+  // Fix: Sửa cú pháp render Spinner
+  if (loading) {
+    return <Spinner isVisible isOverlay />; // Trả về component thay vì JSX fragment
   }
 
   return (

@@ -10,7 +10,11 @@ import { SERVICE_FEE } from "@/src/utils/constants";
 import axiosInstance from "@/src/utils/axiosConfig";
 import { useDispatch, useSelector } from "@/src/store/types";
 import { RootState } from "@/src/store/store";
-import { loadTokenFromAsyncStorage, saveTokenToAsyncStorage, setBalance } from "@/src/store/authSlice";
+import {
+  loadTokenFromAsyncStorage,
+  saveTokenToAsyncStorage,
+  setBalance,
+} from "@/src/store/authSlice";
 import FFModal from "../FFModal";
 
 interface Props_ModalConfirmPayment {
@@ -24,15 +28,26 @@ const ModalConfirmPayment = ({
   isVisible,
   onClose,
 }: Props_ModalConfirmPayment) => {
-  const [selectedPaymentMethod, setSelectPaymentMethod] = useState<"MOMO" | "VCB" | "OTHERS">("MOMO");
+  const [selectedPaymentMethod, setSelectPaymentMethod] = useState<
+    "MOMO" | "VCB" | "OTHERS"
+  >("MOMO");
   const [error, setError] = useState("");
-  const [modalStatus, setModalStatus] = useState<'ERROR' | 'SUCCESSFUL' | null>(null);
+  const [modalStatus, setModalStatus] = useState<"ERROR" | "SUCCESSFUL" | null>(
+    null
+  );
   const [isOpenModalStatus, setIsOpenModalStatus] = useState<boolean>(false);
 
-  const { email, userId, balance, fWalletId, accessToken, app_preferences ,user_type} = useSelector(
-    (state: RootState) => state.auth
-  ); // Get token from Redux
+  const {
+    email,
+    userId,
+    balance,
+    fWalletId,
+    accessToken,
+    app_preferences,
+    user_type,
+  } = useSelector((state: RootState) => state.auth); // Get token from Redux
   const dispatch = useDispatch();
+  console.log("check stat", userId);
 
   const [loading, setLoading] = useState(true); // Loading state to wait for token loading
 
@@ -50,27 +65,29 @@ const ModalConfirmPayment = ({
     return null; // Or return a loading spinner here, e.g. <ActivityIndicator />
   }
 
-const handleConfirmPayment = async () => {
+  const handleConfirmPayment = async () => {
     // Check if the balance is sufficient (balance - value)
-    if ((balance ?? 0) - +value < 0) {
-      // Set the error state message if not enough balance
-      setError("Not enough balance");
-      setModalStatus('ERROR');
-      setIsOpenModalStatus(true);
-      return;
-    }
+    // if ((balance ?? 0) - +value < 0) {
+    //   // Set the error state message if not enough balance
+    //   setError("Not enough balance");
+    //   setModalStatus('ERROR');
+    //   setIsOpenModalStatus(true);
+    //   return;
+    // }
 
     // Create the request body
     const requestBody = {
       user_id: userId ?? "", // Use empty string if userId is null
       fwallet_id: fWalletId ?? "", // Use empty string if fWalletId is null
-      transaction_type: "DEPOSIT", 
+      transaction_type: "DEPOSIT",
       amount: +value,
       balance_after: (balance ?? 0) + +value,
       status: "PENDING",
       source: "FWALLET",
+      destination_type: "FWALLET",
       destination: fWalletId ?? "", // Use empty string if fWalletId is null
     };
+    console.log("cehck req bodt", requestBody);
 
     try {
       // Send the POST request
@@ -81,37 +98,40 @@ const handleConfirmPayment = async () => {
           validateStatus: () => true, // Do not reject on non-2xx status codes
         }
       );
+      console.log("cehck ", response.data);
 
       // Handle the response data (e.g., navigate or update UI based on response)
-       if (response.data?.EC === 0) {
-      // Transaction is successful: Update the global balance
-      const newBalance = (balance ?? 0) + +value;
-      dispatch(setBalance(newBalance)); // Update Redux store with the new balance
-      dispatch(saveTokenToAsyncStorage({ // Save the updated balance to AsyncStorage
-        accessToken: accessToken ?? "", // Use empty string if accessToken is null
-        app_preferences: app_preferences ?? {}, // Use empty object if app_preferences is null
-        balance: newBalance, 
-        email: email ?? "", // Use empty string if email is null
-        fWalletId: fWalletId ?? "", // Use empty string if fWalletId is null
-        userId: userId ?? "", // Use empty string if userId is null
-        user_type: user_type ?? [], // Use empty array if user_type is null
-      }));
-      setModalStatus('SUCCESSFUL');
-      setIsOpenModalStatus(true);
-    } else {
+      if (response.data?.EC === 0) {
+        // Transaction is successful: Update the global balance
+        const newBalance = (balance ?? 0) + +value;
+        dispatch(setBalance(newBalance)); // Update Redux store with the new balance
+        dispatch(
+          saveTokenToAsyncStorage({
+            // Save the updated balance to AsyncStorage
+            accessToken: accessToken ?? "", // Use empty string if accessToken is null
+            app_preferences: app_preferences ?? {}, // Use empty object if app_preferences is null
+            balance: newBalance,
+            email: email ?? "", // Use empty string if email is null
+            fWalletId: fWalletId ?? "", // Use empty string if fWalletId is null
+            userId: userId ?? "", // Use empty string if userId is null
+            user_type: user_type ?? [], // Use empty array if user_type is null
+          })
+        );
+        setModalStatus("SUCCESSFUL");
+        setIsOpenModalStatus(true);
+      } else {
         // Failure: Set the error message from response if available
         setError(response.data?.EM || "Transaction failed");
-        setModalStatus('ERROR');
+        setModalStatus("ERROR");
         setIsOpenModalStatus(true);
       }
     } catch (error) {
       // Handle network or other errors
       setError("Network error or request failed");
-      setModalStatus('ERROR');
+      setModalStatus("ERROR");
       setIsOpenModalStatus(true);
     }
   };
-
 
   return (
     <>
@@ -185,9 +205,13 @@ const handleConfirmPayment = async () => {
             <FFText style={{ color: "#bbb", fontWeight: 400 }}>Amount</FFText>
             <FFText>${value}</FFText>
           </View>
-          <View style={{ height: 1, backgroundColor: "#ddd", marginTop: 10 }}></View>
+          <View
+            style={{ height: 1, backgroundColor: "#ddd", marginTop: 10 }}
+          ></View>
           <View className="justify-between flex-row items-center">
-            <FFText style={{ color: "#bbb", fontWeight: 400 }}>Service Fee</FFText>
+            <FFText style={{ color: "#bbb", fontWeight: 400 }}>
+              Service Fee
+            </FFText>
             <FFText>{`${SERVICE_FEE}%` && "Free"}</FFText>
           </View>
         </View>
@@ -205,8 +229,11 @@ const handleConfirmPayment = async () => {
           </FFButton>
         </View>
 
-        <FFModal visible={isOpenModalStatus} onClose={() => setIsOpenModalStatus(false)}>
-          <FFText>{modalStatus === 'ERROR' ? error : 'Success'}</FFText>
+        <FFModal
+          visible={isOpenModalStatus}
+          onClose={() => setIsOpenModalStatus(false)}
+        >
+          <FFText>{modalStatus === "ERROR" ? error : "Success"}</FFText>
         </FFModal>
       </SlideUpModal>
     </>

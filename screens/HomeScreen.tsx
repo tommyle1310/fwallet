@@ -34,9 +34,9 @@ type HomeScreenNavigationProp = StackNavigationProp<RootTabParamList, "Home">;
 const HomeScreen = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>(); // Specify the navigation type
   const { theme } = useTheme();
-    const { email, userId, balance, fWalletId } = useSelector(
-      (state: RootState) => state.auth
-    ); // Get token from Redux
+  const { email, userId, balance, fWalletId } = useSelector(
+    (state: RootState) => state.auth
+  ); // Get token from Redux
   return (
     <>
       <FFSafeAreaView>
@@ -56,13 +56,13 @@ const HomeScreen = () => {
             <FFText style={{ color: "#ddd", fontSize: 14 }}>
               Available Balance
             </FFText>
-            <FFText style={{ color: "#fff", fontSize: 28 }}>${balance ?? 0}</FFText>
+            <FFText style={{ color: "#fff", fontSize: 28 }}>${balance}</FFText>
           </View>
           <FFView
             style={{
               marginBottom: -16, // Negative margin bottom
               flex: 1, // Flex 1 to fill available space
-              
+
               marginTop: 48, // Margin top
               borderTopLeftRadius: 24, // 3xl rounded top-left (24 is an approximation of 3xl)
               borderTopRightRadius: 24, // 3xl rounded top-right

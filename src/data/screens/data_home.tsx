@@ -84,14 +84,14 @@ export const data_mainFeatures_Homescreen: {
     title: "Top Up/Withdraw",
     icon: <IconIonicons name="wallet-outline" color="#4FCA24" size={24} />,
     onPress: (navigation) => {
-      navigation.navigate('TopUp')
+      navigation.navigate("TopUp");
     },
   },
   {
     title: "Send",
     icon: <IconFeather name="gift" color="#4FCA24" size={24} />,
     onPress: (navigation) => {
-      // Add the action for Send button
+      navigation.navigate("TransferMoney");
     },
   },
   {

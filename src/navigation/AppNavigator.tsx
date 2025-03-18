@@ -16,11 +16,13 @@ import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "../store/types";
 import { loadTokenFromAsyncStorage } from "../store/authSlice";
+import TransferMoneyScreen from "@/screens/TransferMoneyScreen";
 
 // Define the param list for the stack navigator
 export type RootStackParamList = {
   Login: undefined;
   TopUp: undefined;
+  TransferMoney: undefined;
   Signup: undefined;
   Home: undefined;
 };
@@ -64,7 +66,10 @@ const HomeTabs = () => {
       {content}
 
       {/* Render the custom bottom tab */}
-      <FFBottomTab currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} />
+      <FFBottomTab
+        currentScreen={currentScreen}
+        setCurrentScreen={setCurrentScreen}
+      />
     </View>
   );
 };
@@ -107,11 +112,18 @@ const AppNavigator = () => {
         options={{ headerShown: false }} // Disable header for Home screen
         component={HomeTabs}
       />
-       <Stack.Screen name="TopUp"    options={{ headerShown: false }} component={TopUpScreen} />
+      <Stack.Screen
+        name="TopUp"
+        options={{ headerShown: false }}
+        component={TopUpScreen}
+      />
+      <Stack.Screen
+        name="TransferMoney"
+        options={{ headerShown: false }}
+        component={TransferMoneyScreen}
+      />
     </Stack.Navigator>
   );
 };
-
-
 
 export default AppNavigator;
