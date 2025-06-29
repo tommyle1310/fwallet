@@ -107,7 +107,7 @@ const TopUpScreen = () => {
               setIsShowModalConfirm={setIsShowModalConfirm}
             />
           ) : (
-            <Withdraw />
+            <Withdraw onClose={() => setIsDeposit(true)} />
           )}
         </FFView>
       </View>

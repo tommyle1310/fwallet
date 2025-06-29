@@ -30,6 +30,7 @@ interface Transaction {
   date: string;
   datestamp: string; // Date in YYYY-MM-DD format for grouping
   isPurchase: boolean;
+  isReceived: boolean;
 }
 
 interface GroupedTransactions {
@@ -80,22 +81,40 @@ const HistoryTransactionScreen = () => {
           (transaction: any) => {
             const isPurchase = transaction.transaction_type === "PURCHASE";
             const date = new Date(transaction.timestamp * 1000);
+
+            // Determine if this is money sent or received
+            const isMoneyReceived =
+              isPurchase && transaction.destination === fWalletId;
+            const isMoneyTransferred =
+              isPurchase &&
+              transaction.source === "FWALLET" &&
+              transaction.fwallet_id === fWalletId;
+
+            // Set transaction type description
+            let typeDescription = "Deposit";
+            if (isMoneyReceived) {
+              typeDescription = "Received Money";
+            } else if (isMoneyTransferred) {
+              typeDescription = "Transfer Money";
+            }
+
             return {
               id: transaction.id,
-              type: isPurchase ? "Purchase" : "Deposit",
+              type: typeDescription,
               amount: parseFloat(transaction.amount),
               icon: isPurchase ? (
-                <IconMaterialCommunityIcons
-                  name="cart-outline"
-                  size={24}
-                  color="orange"
-                />
+                isMoneyReceived ? (
+                  <IconFeather name="arrow-down-left" size={24} color="green" />
+                ) : (
+                  <IconFeather name="arrow-up-right" size={24} color="orange" />
+                )
               ) : (
                 <IconFeather name="dollar-sign" size={24} color="green" />
               ),
               date: date.toLocaleString(),
               datestamp: date.toISOString().split("T")[0], // Format as YYYY-MM-DD
               isPurchase: isPurchase,
+              isReceived: isMoneyReceived,
             };
           }
         );
@@ -233,9 +252,7 @@ const HistoryTransactionScreen = () => {
                       {transaction.icon}
                       <View style={{ marginLeft: 12 }}>
                         <FFText style={{ fontSize: 16, fontWeight: "bold" }}>
-                          {transaction.type === "Purchase"
-                            ? "Transfer Money"
-                            : "Deposit"}
+                          {transaction.type}
                         </FFText>
                         <FFText style={{ fontSize: 14, color: "#888" }}>
                           {transaction.date}
@@ -246,10 +263,13 @@ const HistoryTransactionScreen = () => {
                       style={{
                         fontSize: 16,
                         fontWeight: "bold",
-                        color: transaction.isPurchase ? "red" : "green",
+                        color:
+                          transaction.isPurchase && !transaction.isReceived
+                            ? "red"
+                            : "green",
                       }}
                     >
-                      {transaction.isPurchase
+                      {transaction.isPurchase && !transaction.isReceived
                         ? `-${transaction.amount}$`
                         : `+${transaction.amount}$`}
                     </FFText>

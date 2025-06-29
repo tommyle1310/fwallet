@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Linking } from "react-native";
 import React, { useEffect, useState } from "react";
 import FFText from "../FFText";
 import FFButton from "../FFButton";
@@ -78,8 +78,40 @@ const ModalConfirmPayment = ({
     return <Spinner isVisible isOverlay />;
   }
 
+  const handleMomoNavigation = async () => {
+    try {
+      // MOMO UAT deep link URL - this is a sample format, adjust according to MOMO's documentation
+      const momoUatUrl = `momo://uat/payment?amount=${value}&orderId=${Date.now()}&message=FWallet_Deposit`;
+      const canOpen = await Linking.canOpenURL(momoUatUrl);
+      
+      if (canOpen) {
+        await Linking.openURL(momoUatUrl);
+        return true;
+      } else {
+        setError("MOMO UAT app is not installed");
+        setModalStatus("ERROR");
+        setIsOpenModalStatus(true);
+        return false;
+      }
+    } catch (error) {
+      setError("Failed to open MOMO UAT app");
+      setModalStatus("ERROR");
+      setIsOpenModalStatus(true);
+      return false;
+    }
+  };
+
   const handleConfirmPayment = async () => {
     setIsLoading(true);
+
+    // Handle MOMO navigation first if MOMO is selected
+    if (selectedPaymentMethod === "MOMO") {
+      const momoNavigationSuccess = await handleMomoNavigation();
+      if (!momoNavigationSuccess) {
+        setIsLoading(false);
+        return;
+      }
+    }
 
     // Nếu không có requestBody từ props, tạo defaultDepositRequestBody
     if (!requestBody) {

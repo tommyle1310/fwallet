@@ -9,6 +9,7 @@ import FFTextInput from "../FFTextInput";
 import { useTheme } from "@/src/hooks/useTheme";
 import { useSelector } from "@/src/store/types";
 import { RootState } from "@/src/store/store";
+import FFInputControl from "../FFInputControl";
 
 interface DepositProps {
   value: string;
@@ -70,11 +71,11 @@ const Deposit: React.FC<DepositProps> = ({
           style={{ marginVertical: 10, marginBottom: 36 }}
           className="gap-1 "
         >
-          <FFText style={{ fontSize: 14 }}>Enter amount:</FFText>
-          <FFTextInput
+          <FFInputControl
+            label="Enter amount:"
+            placeholder="30"
+            setValue={handleChangeText}
             value={value}
-            handleChangeText={handleChangeText}
-            isInvalid={!!invalidValueMessage}
           />
           {invalidValueMessage && (
             <FFText style={{ color: "red", fontSize: 12 }}>

@@ -1,5 +1,5 @@
-export const BACKEND_URL =
-  "https://0ca0-2001-ee0-50c6-6480-8c7-d122-981d-d424.ngrok-free.app";
+const IP_ADDRESS = "192.168.1.16";
+export const BACKEND_URL = `http://${IP_ADDRESS}:1310`;
 
 export const SERVICE_FEE = 0;
 

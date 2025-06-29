@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import IconIonicons from "react-native-vector-icons/Ionicons";
+import FFAvatar from "@/src/components/FFAvatar";
+import FFInputControl from "@/src/components/FFInputControl";
 
 type FFAuthFormProps = {
   isSignUp: boolean;
@@ -24,7 +26,7 @@ const FFAuthForm = ({
   navigation,
   error,
 }: FFAuthFormProps) => {
-  const [email, setEmail] = useState("customer@gmail.com");
+  const [email, setEmail] = useState("finance.flashfood@gmail.com");
   const [password, setPassword] = useState("000000");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false); // State to toggle password visibility
   const passwordInputRef = useRef<TextInput>(null);
@@ -46,7 +48,7 @@ const FFAuthForm = ({
   return (
     <View style={styles.container}>
       <Text style={styles.headerText}>{isSignUp ? "Sign Up" : "Login"}</Text>
-
+      <FFAvatar avatar="https://res.cloudinary.com/dpubnzap3/image/upload/v1738820317/g2nvwg7zrqkevpdarn3r.png" />
       <View style={styles.switchAuthContainer}>
         <Text style={styles.switchAuthText}>
           {isSignUp ? "Already have an account?" : "Don't have an account?"}
@@ -60,60 +62,22 @@ const FFAuthForm = ({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Email</Text>
-        <TextInput
-          autoCapitalize="none"
-          placeholder="teole1310@gmail.com"
-          value={email}
-          onChangeText={setEmail}
-          style={{
-            borderColor: error ? "red" : "#d1d1d1",
-            ...styles.inputField,
-          }}
-        />
-        {error && <Text className="text-sm text-red-500">{error}</Text>}
-      </View>
+      <FFInputControl
+        error={error}
+        label="Email"
+        placeholder="teo@gmail.com"
+        setValue={setEmail}
+        value={email}
+      />
 
-      <Pressable
-        onPress={handleInputContainerPress}
-        style={styles.inputContainer}
-      >
-        <Text style={styles.inputLabel}>Password</Text>
-        <View
-          className="rounded-md"
-          style={{
-            ...styles.passwordContainer,
-            flexDirection: "row",
-            borderWidth: 1,
-            borderRadius: 8,
-            marginTop: 4,
-            alignItems: "center",
-            borderColor: error ? "red" : "#ccc",
-          }}
-        >
-          <TextInput
-            ref={passwordInputRef}
-            placeholder="*******"
-            value={password}
-            className="px-4"
-            onChangeText={setPassword}
-            secureTextEntry={!isPasswordVisible} // Toggle based on state
-            style={{ borderColor: "none" }}
-          />
-          <TouchableOpacity
-            onPress={togglePasswordVisibility}
-            style={styles.iconButton}
-          >
-            <IconIonicons
-              className="-mt-2"
-              name={isPasswordVisible ? "eye-off" : "eye"}
-              size={20}
-            />
-          </TouchableOpacity>
-        </View>
-        {error && <Text style={{ color: "red", fontSize: 12 }}>{error}</Text>}
-      </Pressable>
+      <FFInputControl
+        error={error}
+        secureTextEntry
+        label="Password"
+        placeholder="******"
+        setValue={setPassword}
+        value={password}
+      />
 
       <Pressable onPress={handleSubmit}>
         <LinearGradient
@@ -133,7 +97,7 @@ const FFAuthForm = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 16,
     width: "90%",

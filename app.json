@@ -1,19 +1,22 @@
 {
   "expo": {
-    "name": "FF_Customer",
-    "slug": "FF_Customer",
+    "name": "FWallet",
+    "slug": "FWallet",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./my_icon.png",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./my_icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.tommyle1310.FWallet"
     },
     "web": {
       "bundler": "metro",
@@ -24,6 +27,7 @@
       [
         "expo-splash-screen",
         {
+          "image": "./splashscreen_logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -32,10 +36,18 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "8e7300ae-a2a5-44dc-a546-5da0533fc3a6"
+      }
+    },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD"
     }
-  },
-  "updates": {
-  "enabled": true,
-  "checkAutomatically": "ON_LOAD"
-}
+  }
 }

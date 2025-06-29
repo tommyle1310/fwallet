@@ -1,4 +1,4 @@
-import { View, Text, TextInput } from "react-native";
+import { View, TextInput, StyleSheet, Platform } from "react-native";
 import React from "react";
 import { useTheme } from "../hooks/useTheme";
 
@@ -6,29 +6,52 @@ const FFTextInput = ({
   isInvalid,
   value,
   handleChangeText,
+  placeholder = "$0",
 }: {
   isInvalid: boolean;
   value: string;
   handleChangeText: (value: string) => void;
+  placeholder?: string;
 }) => {
   const { theme } = useTheme();
+
+  const inputStyles = {
+    color: theme === "light" ? "#111" : "#fff",
+    borderColor: isInvalid ? "#f44444" : "#D1D5DB",
+  };
+
   return (
     <TextInput
-      className={`rounded-lg text-lg px-4`}
-      placeholder="$0"
-      style={{
-        borderRadius: 8,
-        color: theme === "light" ? "#111" : "#fff",
-        fontSize: 18,
-        paddingHorizontal: 16,
-        borderWidth: 1,
-        borderColor: isInvalid ? "#f44444" : "#D1D5DB", // conditional border color
-      }}
+      placeholder={placeholder}
+      placeholderTextColor={theme === "light" ? "#9CA3AF" : "#6B7280"}
+      style={[styles.input, inputStyles]}
       value={value}
       onChangeText={handleChangeText}
-      keyboardType="numeric" // This ensures the keyboard is numeric
+      keyboardType="numeric"
+      underlineColorAndroid="transparent"
     />
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    borderRadius: 8,
+    fontSize: 18,
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === "android" ? 8 : 12,
+    borderWidth: 1,
+    width: "100%",
+    backgroundColor: "transparent",
+    ...Platform.select({
+      android: {
+        textAlignVertical: "center",
+        includeFontPadding: false,
+      },
+      ios: {
+        lineHeight: 24,
+      },
+    }),
+  },
+});
 
 export default FFTextInput;
