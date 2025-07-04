@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import IconIonicons from "react-native-vector-icons/Ionicons";
 import FFAvatar from "@/src/components/FFAvatar";
 import FFInputControl from "@/src/components/FFInputControl";
+import { IMAGE_LINKS } from "@/src/assets/imageLinks";
 
 type FFAuthFormProps = {
   isSignUp: boolean;
@@ -47,8 +48,20 @@ const FFAuthForm = ({
 
   return (
     <View style={styles.container}>
+        <View
+        style={{
+          position: "absolute",
+          right: 0,
+          left: 0,
+          top: -40,
+
+          transform: [{ translateX: "40%" }],
+        }}
+      >
+        <FFAvatar avatar={IMAGE_LINKS.APP_LOGO} />
+      </View>
+
       <Text style={styles.headerText}>{isSignUp ? "Sign Up" : "Login"}</Text>
-      <FFAvatar avatar="https://res.cloudinary.com/dpubnzap3/image/upload/v1738820317/g2nvwg7zrqkevpdarn3r.png" />
       <View style={styles.switchAuthContainer}>
         <Text style={styles.switchAuthText}>
           {isSignUp ? "Already have an account?" : "Don't have an account?"}
